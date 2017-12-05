@@ -1,56 +1,56 @@
 library(testthat)
 
-initChrom = function(dat, chrom=NULL, AIC=NA, fitfunc="evalAIC", family="gaussian") {
+initChrom = function(chrom=NULL, fitfunc="evalAIC", family="gaussian", n=3) {
   ## initializes new objects of class "chromosome"
   ## output: object of class "chromosome"
-  # dat: data in data frame, with first column as outcome variable
   # chrom: numeric vector of 0/1 for variable inclusion in model
-  # fitness: fitness (defaults to AIC) associated with corresponding linear model
-  # fitfunc: fitness function
+  # fitfunc: fitness function associated with corresponding linear model
   # family: family argument for glm function
+  # n: argument for parent.frame() to find original data
+  dat = get("dat", envir=parent.frame(n))
   if(is.null(chrom)) {
     chrom = sample(c(0,1), size = ncol(dat)-1, replace=T)
   }
-  fitness = do.call(fitfunc, list(chrom, dat, family))
+  fitness = do.call(fitfunc, list(chrom))
   obj = list(chrom, fitness)
   names(obj) = c("chrom", "fitness")
   class(obj) = "chromosome"
   return(obj)
 }
 
-convertFormula = function(dat, chrom) {
+convertFormula = function(chrom) {
   ## creates formula for glm() function
   ## output: object of class "formula"
-  # dat: data in data frame, with first column as outcome variables
   # chrom: numeric vector of 0/1 for variable inclusion in model
+  dat = get("dat", envir=parent.frame(n=2))
   varNames = colnames(dat)
   varInclude = paste(varNames[2:ncol(dat)][chrom==1],collapse="+")
   return(as.formula(paste0(varNames[1], " ~ ", varInclude)))
 }
 
-evalAIC = function(chrom, dat, family) {
+evalAIC = function(chrom) {
   ## evaluates AIC of linear model corresponding to chromosome
   ## output: numeric
   # chrom: numeric vector of 0/1 for variable inclusion in model
-  # dat: data in data frame, with first column as outcome variable
-  # returns AIC associated with corresponding linear model
-  form = convertFormula(dat, chrom)
+  dat = get("dat", envir=parent.frame())
+  family = get("family", envir=parent.frame())
+  form = convertFormula(chrom)
   mod = glm(form, family=family, data=dat)
   return(AIC(mod))
 }
 
-initPop = function(dat, popSize=30, genomes=NULL) {
+initPop = function(popSize=30, genomes=NULL) {
   ## initializes new objects of class "population"
   ## output: object of class "population"
-  # dat: data in data frame, with first column as outcome variable
   # popSize: number of chromosomes in population
+  dat = get("dat", envir=parent.frame())
   if(is.null(genomes)) {
-    genomes = lapply(1:popSize, function(x) initChrom(dat))
+    genomes = lapply(1:popSize, function(x) initChrom())
   }
   fitness = getFitness(genomes)
   bestChrom = genomes[[which.max(fitness)]]
-  obj = list(dat, genomes, bestChrom)
-  names(obj) = c("data","genomes", "bestChrom")
+  obj = list(genomes, bestChrom)
+  names(obj) = c("genomes", "bestChrom")
   class(obj) = "population"
   return(obj)
 }
@@ -71,19 +71,7 @@ nextGen = function(pop, pSelect=0.2, pMutate=0.01) {
   ## output: object of class "population"
   # pop: object of class "population"
   # pSelect: proportion of population to select out
-  
-  # test inputs 
-  test_that("pop is 'population' object", {
-    expect_equal(class(pop), "population")
-  })
-  test_that("pSelect is proportion", {
-    expect_true(pSelect > 0)
-    expect_true(pSelect < 1)
-  })
-  test_that("pMutate is proportion", {
-    expect_true(pMutate > 0)
-    expect_true(pMutate < 1)
-  })
+  # pMutate: probability of mutation for single locus
   
   # 1. remove lowest pSelect*100% of chromosomes from population
   numRemove = floor(pSelect*length(pop$genomes))
@@ -94,20 +82,19 @@ nextGen = function(pop, pSelect=0.2, pMutate=0.01) {
   weights = getFitness(oldGenomes)/sum(getFitness(oldGenomes))
   newGenomes = lapply(1:numRemove, 
                       function(x) {
-                        crossover(sample(oldGenomes, size=2, prob=weights), 
-                                  dat=pop$data)
+                        crossover(sample(oldGenomes, size=2, prob=weights))
                       })
   genomes = unlist(list(oldGenomes, newGenomes), recursive=F)
-  newPop = initPop(dat=pop$data, popSize=NA, genomes=genomes)
+  newPop = initPop(genomes=genomes)
   
   # 3. generate random mutations in population
-  nMutations = rbinom(n = length(genomes), size=(ncol(pop$data)-1), prob=pMutate)
+  nMutations = rbinom(n = length(genomes), size=length(genomes[[1]]$chrom), prob=pMutate)
   newPop = mutatePop(newPop, nMutations)
   
   return(newPop)
 }
 
-crossover = function(parents, dat) {
+crossover = function(parents) {
   ## performs crossover between 2 parent chromosomes
   ## output: object of class "chromosome"
   # parents: list of 2 "chromosome" objects
@@ -116,11 +103,11 @@ crossover = function(parents, dat) {
   nVars = length(chromA$chrom)
   pos = sample.int(nVars, size=1)
   chrom = c(chromA$chrom[1:pos], chromB$chrom[(pos+1):nVars])
-  obj = initChrom(dat=dat, chrom=chrom)
+  obj = initChrom(chrom=chrom, n=5)
   return(obj)
 }
 
-mutateChrom = function(chrom, nMutate, dat) {
+mutateChrom = function(chrom, nMutate) {
   ## performs mutation on single chromosomes
   ## output: object of class "chromosome"
   # chrom: object of class "chromosome"
@@ -129,7 +116,7 @@ mutateChrom = function(chrom, nMutate, dat) {
   posMutate = sample.int(nVars, size=nMutate)
   newChrom = chrom$chrom
   newChrom[posMutate] = abs(newChrom[posMutate]-1)
-  obj = initChrom(dat=dat, chrom=newChrom)
+  obj = initChrom(chrom=newChrom)
   return(obj)
 }
 
@@ -140,11 +127,23 @@ mutatePop = function(pop, nMutations) {
   # nMutations: number of mutations to perform on each chromosome in pop
   toMutate = which(nMutations > 0)
   for(i in toMutate) {
-    pop$genomes[[i]] = mutateChrom(pop$genomes[[i]], nMutations[i], pop$data)
+    pop$genomes[[i]] = mutateChrom(pop$genomes[[i]], nMutations[i])
   }
   return(pop)
 }
 
-### testing code
-tmp = initPop(mtcars)
-tmp2 = nextGen(tmp)
+GA = function(dat, numIter = 1000, fitfunc="evalAIC", family="gaussian", 
+              pSelect = 0.2, pMutate = 0.01) {
+  ## wrapper function for genetic algorithm
+  ## output: object of class "chromosome" corresponding to best model
+  # dat: data in data frame, with first column as outcome variable
+  # fitfunc: fitness function associated with corresponding linear model
+  # family: family argument for glm function 
+  # pSelect: proportion of population to select out
+  # pMutate: probability of mutation for single locus
+  
+  # test inputs
+  test_that("dat is data frame", {
+    expect_equal(class(dat), "data.frame")
+  })
+}
