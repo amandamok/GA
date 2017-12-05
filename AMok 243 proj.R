@@ -1,4 +1,6 @@
-initChrom = function(dat, chrom=NA, AIC=NA, fitfunc="evalAIC", family="gaussian") {
+library(testthat)
+
+initChrom = function(dat, chrom=NULL, AIC=NA, fitfunc="evalAIC", family="gaussian") {
   ## initializes new objects of class "chromosome"
   ## output: object of class "chromosome"
   # dat: data in data frame, with first column as outcome variable
@@ -6,10 +8,10 @@ initChrom = function(dat, chrom=NA, AIC=NA, fitfunc="evalAIC", family="gaussian"
   # fitness: fitness (defaults to AIC) associated with corresponding linear model
   # fitfunc: fitness function
   # family: family argument for glm function
-  if(is.na(chrom)) {
+  if(is.null(chrom)) {
     chrom = sample(c(0,1), size = ncol(dat)-1, replace=T)
-    fitness = do.call(fitfunc, list(chrom, dat, family))
   }
+  fitness = do.call(fitfunc, list(chrom, dat, family))
   obj = list(chrom, fitness)
   names(obj) = c("chrom", "fitness")
   class(obj) = "chromosome"
@@ -37,7 +39,7 @@ evalAIC = function(chrom, dat, family) {
   return(AIC(mod))
 }
 
-initPop = function(dat, popSize, genomes=NULL) {
+initPop = function(dat, popSize=30, genomes=NULL) {
   ## initializes new objects of class "population"
   ## output: object of class "population"
   # dat: data in data frame, with first column as outcome variable
@@ -47,8 +49,8 @@ initPop = function(dat, popSize, genomes=NULL) {
   }
   fitness = getFitness(genomes)
   bestChrom = genomes[[which.max(fitness)]]
-  obj = list(genomes, bestChrom)
-  names(obj) = c("genomes", "bestChrom")
+  obj = list(dat, genomes, bestChrom)
+  names(obj) = c("data","genomes", "bestChrom")
   class(obj) = "population"
   return(obj)
 }
@@ -60,33 +62,89 @@ getFitness = function(genomes) {
   sapply(genomes, function(obj) obj$fitness)
 }
 
-breed = function(pop, pSelect=0.2) {
-  ## removes lowest 100*pSelect% of chromosomes from population
-  ## repopulate: offspring are replicates, parents selected proportional to fitness
+nextGen = function(pop, pSelect=0.2, pMutate=0.01) {
+  ## 1. remove lowest pSelect*100% of chromosomes from population
+  ## 2. repopulate with offspring
+  ## 2.a. select parents with probability proportional to fitness
+  ## 2.b. perform crossover between parent chromosomes
+  ## 3. generate random mutations in population
   ## output: object of class "population"
   # pop: object of class "population"
   # pSelect: proportion of population to select out
-  browser()
+  
+  # test inputs 
+  test_that("pop is 'population' object", {
+    expect_equal(class(pop), "population")
+  })
   test_that("pSelect is proportion", {
     expect_true(pSelect > 0)
     expect_true(pSelect < 1)
   })
+  test_that("pMutate is proportion", {
+    expect_true(pMutate > 0)
+    expect_true(pMutate < 1)
+  })
+  
+  # 1. remove lowest pSelect*100% of chromosomes from population
   numRemove = floor(pSelect*length(pop$genomes))
   fitness = getFitness(pop$genomes)
   oldGenomes = pop$genomes[order(fitness, decreasing=F)>numRemove]
+  
+  # 2. repopulate with offspring
   weights = getFitness(oldGenomes)/sum(getFitness(oldGenomes))
-  newGenomes = lapply(1:numRemove, function(x) sample(oldGenomes, weights))
-  genomes = list(unlist(oldGenomes), unlist(newGenomes))
-  newPop = initPop(dat=NA, popSize=NA, genomes=genomes)
+  newGenomes = lapply(1:numRemove, 
+                      function(x) {
+                        crossover(sample(oldGenomes, size=2, prob=weights), 
+                                  dat=pop$data)
+                      })
+  genomes = unlist(list(oldGenomes, newGenomes), recursive=F)
+  newPop = initPop(dat=pop$data, popSize=NA, genomes=genomes)
+  
+  # 3. generate random mutations in population
+  nMutations = rbinom(n = length(genomes), size=(ncol(pop$data)-1), prob=pMutate)
+  newPop = mutatePop(newPop, nMutations)
+  
   return(newPop)
 }
 
-crossover = function(chromA, chromB) {
-  # chromA, chromB: two parent chromosomes
-  
+crossover = function(parents, dat) {
+  ## performs crossover between 2 parent chromosomes
+  ## output: object of class "chromosome"
+  # parents: list of 2 "chromosome" objects
+  chromA = parents[[1]]
+  chromB = parents[[2]]
+  nVars = length(chromA$chrom)
+  pos = sample.int(nVars, size=1)
+  chrom = c(chromA$chrom[1:pos], chromB$chrom[(pos+1):nVars])
+  obj = initChrom(dat=dat, chrom=chrom)
+  return(obj)
 }
 
-mutate = function(pop, pMutate) {
-  # pop: population of chromosomes
-  # pMutate: probability of mutation per locus
+mutateChrom = function(chrom, nMutate, dat) {
+  ## performs mutation on single chromosomes
+  ## output: object of class "chromosome"
+  # chrom: object of class "chromosome"
+  # nMutate: number of mutations to perform on chromosome
+  nVars = length(chrom$chrom)
+  posMutate = sample.int(nVars, size=nMutate)
+  newChrom = chrom$chrom
+  newChrom[posMutate] = abs(newChrom[posMutate]-1)
+  obj = initChrom(dat=dat, chrom=newChrom)
+  return(obj)
 }
+
+mutatePop = function(pop, nMutations) {
+  ## performs mutations on population
+  ## output: object of class "population"
+  # pop: object of class "population"
+  # nMutations: number of mutations to perform on each chromosome in pop
+  toMutate = which(nMutations > 0)
+  for(i in toMutate) {
+    pop$genomes[[i]] = mutateChrom(pop$genomes[[i]], nMutations[i], pop$data)
+  }
+  return(pop)
+}
+
+### testing code
+tmp = initPop(mtcars)
+tmp2 = nextGen(tmp)
