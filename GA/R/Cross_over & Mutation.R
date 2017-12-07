@@ -1,6 +1,6 @@
 #' @export
 
-crossover = function(parents, dat, fitfunc="evalAIC", family="gaussian") {
+crossover = function(parents, dat, fitfunc="AIC", family="gaussian") {
   ## performs crossover between 2 parent chromosomes
   ## output: object of class "chromosome"
   # parents: list of 2 "chromosome" objects
@@ -8,12 +8,21 @@ crossover = function(parents, dat, fitfunc="evalAIC", family="gaussian") {
   chromB = parents[[2]]
   nVars = length(chromA$chrom)
   pos = sample.int(nVars, size=1)
+
+  ########################
+  while(pos == nVars | pos == 0) {
+    pos = sample.int(nVars, size=1)
+  }
+  #######################
+
+
+
   chrom = c(chromA$chrom[1:pos], chromB$chrom[(pos+1):nVars])
   obj = initChrom(dat=dat, chrom=chrom, fitfunc=fitfunc, family=family)
   return(obj)
 }
 
-mutateChrom = function(chrom, nMutate, dat) {
+mutateChrom = function(chrom, nMutate, dat, fitfunc="AIC", family="gaussian") {
   ## performs mutation on single chromosomes
   ## output: object of class "chromosome"
   # chrom: object of class "chromosome"
@@ -22,18 +31,19 @@ mutateChrom = function(chrom, nMutate, dat) {
   posMutate = sample.int(nVars, size=nMutate)
   newChrom = chrom$chrom
   newChrom[posMutate] = abs(newChrom[posMutate]-1)
-  obj = initChrom(dat=dat, chrom=newChrom)
+  obj = initChrom(dat=dat, chrom=newChrom, fitfunc=fitfunc, family=family)
   return(obj)
 }
 
-mutatePop = function(pop, nMutations) {
+mutatePop = function(pop, nMutations, fitfunc="AIC", family="gaussian") {
   ## performs mutations on population
   ## output: object of class "population"
   # pop: object of class "population"
   # nMutations: number of mutations to perform on each chromosome in pop
   toMutate = which(nMutations > 0)
   for(i in toMutate) {
-    pop$genomes[[i]] = mutateChrom(pop$genomes[[i]], nMutations[i], pop$data)
+    pop$genomes[[i]] = mutateChrom(pop$genomes[[i]], nMutations[i], pop$data,
+                                   fitfunc=fitfunc, family=family)
   }
   return(pop)
 }
