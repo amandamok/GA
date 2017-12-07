@@ -6,8 +6,9 @@ convertFormula = function(dat, chrom) {
   # dat: data in data frame, with first column as outcome variables
   # chrom: numeric vector of 0/1 for variable inclusion in model
   varNames = colnames(dat)
-  if(sum(chrom)==0) {varInclude = "0"}
-  varInclude = paste(varNames[2:ncol(dat)][chrom==1],collapse="+")
+  varInclude = ifelse(sum(chrom==0),
+                      "0",
+                      paste(varNames[2:ncol(dat)][chrom==1],collapse="+"))
   return(as.formula(paste0(varNames[1], " ~ ", varInclude)))
 }
 
