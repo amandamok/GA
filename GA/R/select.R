@@ -7,10 +7,12 @@ select <- function(dat, y_name, fitfunc="AIC", family="gaussian",
   init_pop = initPop(dat = new_dat, popSize = popSize, genomes=NULL,
                      fitfunc = fitfunc, family = family)
   best_fitness = c(init_pop$bestChrom$fitness)
+  avg_fitness = c(getFitness(init_pop$genomes))
   next_gen = nextGen(init_pop, pSelect=pSelect, pMutate=pMutate, fitfunc=fitfunc, family=family)
   best_gen = next_gen
   for(i in 1:max_iter) {
     best_fitness = c(best_fitness, next_gen$bestChrom$fitness)
+    avg_fitness = c(avg_fitness, getFitness(next_gen$genomes))
     updated_gen = nextGen(next_gen, pSelect=pSelect,
                           pMutate=pMutate, fitfunc=fitfunc, family=family)
 #    set1 <-c(next_gen, NA)
@@ -34,6 +36,7 @@ select <- function(dat, y_name, fitfunc="AIC", family="gaussian",
                                    ".", sep = ""))
   }
   plot(best_fitness)
+  plot(avg_fitness)
   selected_var_ind <- which(best_gen$bestChrom$chrom == 1)
   selected_var <- paste0(colnames(new_dat)[selected_var_ind + 1], collapse = " + ")
   best_model <- paste(y_name, " ~ ", selected_var)
