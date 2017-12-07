@@ -1,8 +1,5 @@
 #' @export
 
-#source("/Users/jytang/Desktop/GA/R/Helper Function.R")
-#source("/Users/jytang/Desktop/GA/R//Cross_over & Mutation.R")
-
 nextGen = function(pop, pSelect=0.2, pMutate=0.01, fitfunc="AIC", family="gaussian") {
   ## 1. remove lowest pSelect*100% of chromosomes from population
   ## 2. repopulate with offspring

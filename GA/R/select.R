@@ -1,8 +1,5 @@
 #' @export
 
-#source("/Users/jytang/Desktop/GA/R/Initialization.R")
-#source("/Users/jytang/Desktop/GA/R/Next Generation.R")
-
 
 select <- function(dat, y_name, fitfunc="AIC", family="gaussian",
                    popSize=30, pSelect=0.2, pMutate=0.01, max_iter=1000) {

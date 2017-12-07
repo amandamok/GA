@@ -1,7 +1,5 @@
 #' @export
 
-source("/Users/jytang/Desktop/GA/R/Helper Function.R")
-
 initChrom = function(dat, chrom=NULL, fitfunc="AIC", family="gaussian") {
   ## initializes new objects of class "chromosome"
   ## output: object of class "chromosome"
