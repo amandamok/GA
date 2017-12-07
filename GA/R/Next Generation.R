@@ -29,7 +29,7 @@ nextGen = function(pop, pSelect=0.2, pMutate=0.01, fitfunc="AIC", family="gaussi
   if(length(which(weights == 1)) != 0)  return(pop)
   ##########Might wanna change our method here??################
   nChrom = length(oldGenomes)
-  weights = rank(getFitness(oldGenomes))/(nChrom*(nChrom+1))
+  weights = 2*order(getFitness(oldGenomes), decreasing=T)/(nChrom*(nChrom+1))
   newGenomes = lapply(1:numRemove,
                       function(x) {
                         crossover(sample(oldGenomes, size=2, prob=weights),
