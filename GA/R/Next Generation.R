@@ -30,7 +30,7 @@ nextGen = function(pop, pSelect=0.2, pMutate=0.01, fitfunc="AIC", family="gaussi
   ##########Might wanna change our method here??################
   nChrom = length(oldGenomes)
   weights = 2*order(getFitness(oldGenomes), decreasing=T)/(nChrom*(nChrom+1))
-  if(length(which(weights == 1)) != 0)  return(pop)
+  #if(length(which(weights == 1)) != 0)  return(pop)
 
   newGenomes = lapply(1:numRemove,
                       function(x) {

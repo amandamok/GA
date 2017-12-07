@@ -13,15 +13,15 @@ select <- function(dat, y_name, fitfunc="AIC", family="gaussian",
     best_fitness = c(best_fitness, next_gen$bestChrom$fitness)
     updated_gen = nextGen(next_gen, pSelect=pSelect,
                           pMutate=pMutate, fitfunc=fitfunc, family=family)
-    set1 <-c(next_gen, NA)
-    set2 <-c(updated_gen, NA)
-    if(setequal(set1, set2)) {
-      print(paste("The best model selected by ", formals(nextGen)$fitfunc, " using ",
-                  formals(nextGen)$family, " distribution is generated at the ",
-                  i, "th iteration.", "The fitness value for the model is ",
-                  best_gen$bestChrom$fitness, ".", sep = ""))
-      break
-      }
+#    set1 <-c(next_gen, NA)
+#    set2 <-c(updated_gen, NA)
+#    if(setequal(set1, set2)) {
+#      print(paste("The best model selected by ", formals(nextGen)$fitfunc, " using ",
+#                  formals(nextGen)$family, " distribution is generated at the ",
+#                  i, "th iteration.", "The fitness value for the model is ",
+#                  best_gen$bestChrom$fitness, ".", sep = ""))
+#      break
+#      }
     next_gen = updated_gen
     if(min(best_fitness) >= updated_gen$bestChrom$fitness) {
       best_gen = updated_gen
