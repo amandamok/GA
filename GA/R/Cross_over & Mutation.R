@@ -7,16 +7,7 @@ crossover = function(parents, dat, fitfunc="AIC", family="gaussian") {
   chromA = parents[[1]]
   chromB = parents[[2]]
   nVars = length(chromA$chrom)
-  pos = sample.int(nVars, size=1)
-
-  ########################
-  while(pos == nVars | pos == 0) {
-    pos = sample.int(nVars, size=1)
-  }
-  #######################
-
-
-
+  pos = sample.int(nVars-1, size=1)
   chrom = c(chromA$chrom[1:pos], chromB$chrom[(pos+1):nVars])
   obj = initChrom(dat=dat, chrom=chrom, fitfunc=fitfunc, family=family)
   return(obj)
