@@ -1,4 +1,11 @@
-#' @export
+#'Cross over
+#'
+#'Generate offsprings by randomly pick the position of chromosomes
+#'@param parents list, parents to generate offsprings,length=2
+#'@param dat dataframe, data to generate offspring(default sets the dependent variable in first column and independent varialbes is other columns)
+#'@param fitfunc method, model selection method(default is AIC)
+#'@param family family,for linear regression model the family should be a continuous probability density function (default is gaussian family)
+#'@export
 
 crossover = function(parents, dat, fitfunc="AIC", family="gaussian") {
   ## performs crossover between 2 parent chromosomes
@@ -13,6 +20,16 @@ crossover = function(parents, dat, fitfunc="AIC", family="gaussian") {
   return(obj)
 }
 
+#'Muatation
+#'
+#'Performs mutation on single chromosomes
+#'@param chrom vector, a chromsome which a mutation is desired
+#'@param nMutate integer, indicating how many mutations to perform on chromosome
+#'@param dat dataframe, data to do mutation(default sets the dependent variable in first column and independent varialbes is other columns)
+#'@param fitfunc method, model selection method(default is AIC)
+#'@param family family,for linear regression model the family should be a continuous probability density function (default is gaussian family)
+#'@export
+
 mutateChrom = function(chrom, nMutate, dat, fitfunc="AIC", family="gaussian") {
   ## performs mutation on single chromosomes
   ## output: object of class "chromosome"
@@ -25,6 +42,17 @@ mutateChrom = function(chrom, nMutate, dat, fitfunc="AIC", family="gaussian") {
   obj = initChrom(dat=dat, chrom=newChrom, fitfunc=fitfunc, family=family)
   return(obj)
 }
+
+
+#'Muatation
+#'
+#'Perform mutations on population
+#'@param pop list, a population which mutation is desired
+#'@param nMutate integer, indicating how many mutations to perform on chromosome
+#'@param dat dataframe, data to do mutation(default sets the dependent variable in first column and independent varialbes is other columns) )
+#'@param fitfunc method, model selection method(default is AIC)
+#'@param family family,for linear regression model the family should be a continuous probability density function (default is gaussian family)
+#'@export
 
 mutatePop = function(pop, nMutations, fitfunc="AIC", family="gaussian") {
   ## performs mutations on population

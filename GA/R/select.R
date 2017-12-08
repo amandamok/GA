@@ -1,8 +1,21 @@
-#' @export
+#'select
+#'
+#'Select the best model
+#'@param dat dataframe, data to operation(default sets dependent variable in first column and independent varialbes is other columns)
+#'@param y_name string, column of dependent variable
+#'@param popSize integer, population size(default=30)
+#'@param pSelect float, the worse part to remove from the population(default=0.2)
+#'@param pMutate float, the probability used to decide number of mutation(default=0.01)
+#'@param max_iter integer, the maximum number of iteration
+#'@param fitfunc method, model selection method(default is AIC)
+#'@param family family,for linear regression model the family should be a continuous probability density function (default is gaussian family)
+#'@param end_iter_cond logical, the index to decide whether to stop iteration (default=F)
+#'@return list, return the best model that composed of chromsome and corresponding fitness
+#'@export
 
 
-select <- function(dat, y_name, fitfunc="AIC", family="gaussian",
-                   popSize=30, pSelect=0.2, pMutate=0.01, max_iter=1000, end_iter_cond = F) {
+select <- function(dat, y_name, popSize=30, pSelect=0.2, pMutate=0.01, max_iter=1000,
+                   fitfunc="AIC", family="gaussian", end_iter_cond = F) {
 
   #Create a new data set with the dependent variable as the first column from the original data set
   new_dat = swapCol(dat = dat, y_name = y_name)
@@ -60,7 +73,7 @@ select <- function(dat, y_name, fitfunc="AIC", family="gaussian",
   plot(best_fitness, main="best fitness per generation", xlab="iteration")
   plot(avg_fitness, main="average fitness per generation", xlab="iteration")
 
-  #Generate the formular for the best model selected by the fitness function
+  #Generate the formula for the best model selected by the fitness function
   selected_var_ind <- which(best_gen$bestChrom$chrom == 1)
   selected_var <- paste0(colnames(new_dat)[selected_var_ind + 1], collapse = " + ")
   best_model <- paste(y_name, " ~ ", selected_var)

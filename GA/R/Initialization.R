@@ -1,4 +1,11 @@
-#' @export
+#'initChrom
+#'
+#'Initializes chromosome
+#'@param dat dataframe, data to operation(default sets dependent variable in first column and independent varialbes is other columns)
+#'@param chrom vector, chromesome which is composed of binary data(default is NULL)
+#'@param fitfunc method, model selection method(default is AIC)
+#'@param family family,for linear regression model the family should be a continuous probability density function (default is gaussian family)
+#'@export
 
 initChrom = function(dat, chrom=NULL, fitfunc="AIC", family="gaussian") {
   ## initializes new objects of class "chromosome"
@@ -16,6 +23,17 @@ initChrom = function(dat, chrom=NULL, fitfunc="AIC", family="gaussian") {
   class(obj) = "chromosome"
   return(obj)
 }
+
+
+#'initPop
+#'
+#'Initializes population
+#'@param dat dataframe, data to operation(default sets dependent variable in first column and independent varialbes is other columns)
+#'@param popSize integer, population size(default=30)
+#'@param genomes list, composed of chromosomes and fitness value with lenght equal to population size(default=NULL)
+#'@param fitfunc method, model selection method(default is AIC)
+#'@param family family,for linear regression model the family should be a continuous probability density function (default is gaussian family)
+#'@export
 
 initPop = function(dat, popSize=30, genomes=NULL, fitfunc="AIC", family="gaussian") {
   ## initializes new objects of class "population"

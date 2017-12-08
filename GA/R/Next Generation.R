@@ -1,4 +1,14 @@
-#' @export
+#'nextGen
+#'
+#'Make the next generation
+#'@param pop list, population
+#'@param pSelect float, the worse part to remove from the population(default=0.2)
+#'@param pMutate float, the probability used to decide number of mutation(default=0.01)
+#'@param fitfunc method, model selection method(default is AIC)
+#'@param family family,for linear regression model the family should be a continuous probability density function (default is gaussian family)
+#'@param end_iter_cond logical, the index to decide whether to stop iteration (default=F)
+#'@return list, population
+#'@export
 
 nextGen = function(pop, pSelect=0.2, pMutate=0.01, fitfunc="AIC", family="gaussian", end_iter_cond = F) {
   ## 1. remove lowest pSelect*100% of chromosomes from population
