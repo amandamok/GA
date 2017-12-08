@@ -2,14 +2,20 @@
 
 
 select <- function(dat, y_name, fitfunc="AIC", family="gaussian",
-                   popSize=30, pSelect=0.2, pMutate=0.01, max_iter=1000) {
+                   popSize=30, pSelect=0.2, pMutate=0.01, max_iter=1000, end_iter_cond = F) {
+
+  #Create a new data set with the dependent variable as the first column from the original data set
   new_dat = swapCol(dat = dat, y_name = y_name)
+
   init_pop = initPop(dat = new_dat, popSize = popSize, genomes=NULL,
                      fitfunc = fitfunc, family = family)
+
+  #Create two vectors to store the best and the average fitness value for each generation (iteration)
   best_fitness = rep(NA, max_iter+1)
   best_fitness[1] = init_pop$bestChrom$fitness
   avg_fitness = rep(NA, max_iter+1)
   avg_fitness[1] = mean(getFitness(init_pop$genomes))
+
   next_gen = nextGen(init_pop, pSelect=pSelect, pMutate=pMutate, fitfunc=fitfunc, family=family)
   best_gen = next_gen
   for(i in 1:max_iter) {
@@ -17,32 +23,48 @@ select <- function(dat, y_name, fitfunc="AIC", family="gaussian",
     avg_fitness[i+1] = mean(getFitness(next_gen$genomes))
     updated_gen = nextGen(next_gen, pSelect=pSelect,
                           pMutate=pMutate, fitfunc=fitfunc, family=family)
-#    set1 <-c(next_gen, NA)
-#    set2 <-c(updated_gen, NA)
-#    if(setequal(set1, set2)) {
-#      print(paste("The best model selected by ", formals(nextGen)$fitfunc, " using ",
-#                  formals(nextGen)$family, " distribution is generated at the ",
-#                  i, "th iteration.", "The fitness value for the model is ",
-#                  best_gen$bestChrom$fitness, ".", sep = ""))
-#      break
-#      }
+
+    #The iteration will stop when members of the next generation are exactly the same as the previous one
+    #if the end_iter_cond is set to be true
+    if(end_iter_cond) {
+      set1 <-c(next_gen, NA)
+      set2 <-c(updated_gen, NA)
+      if(setequal(set1, set2)) {
+        print(paste("The best model selected by ", fitfunc, " using ",
+                    family, " distribution is generated at the ",
+                    i, "th iteration.", "The fitness value for the model is ",
+                    best_gen$bestChrom$fitness, ".", sep = ""))
+        break
+      }
+
+    }
+
     next_gen = updated_gen
+
+    #Updated the best model selected by the fitness function
     if(min(best_fitness, na.rm=T) >= updated_gen$bestChrom$fitness) {
       best_gen = updated_gen
     }
+
+    #Generate a notification every 100 iterations
     if (i %% 100 == 0) print(paste("Finished the ", i, "th iteration.", sep = ""))
     if (i == max_iter) print(paste("This select function reaches the number of maximum iterations.",
-                                   "The best model selected by ", formals(nextGen)$fitfunc, " using ",
-                                   formals(nextGen)$family, " distribution within the maximum iterations",
+                                   "The best model selected by ", fitfunc, " using ",
+                                   family, " distribution within the maximum iterations",
                                    " has the fitness value as ", best_gen$bestChrom$fitness,
                                    ".", sep = ""))
   }
+
+  #Output two plots corresponding to best fitness value per generation and average fitness value per generation
   par(mfrow=c(1,2))
   plot(best_fitness, main="best fitness per generation", xlab="iteration")
   plot(avg_fitness, main="average fitness per generation", xlab="iteration")
+
+  #Generate the formular for the best model selected by the fitness function
   selected_var_ind <- which(best_gen$bestChrom$chrom == 1)
   selected_var <- paste0(colnames(new_dat)[selected_var_ind + 1], collapse = " + ")
   best_model <- paste(y_name, " ~ ", selected_var)
+
   result <- list(best_model,
                  best_gen$bestChrom$chrom,
                  best_gen$bestChrom$fitness)
