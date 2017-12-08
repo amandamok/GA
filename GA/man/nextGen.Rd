@@ -24,5 +24,5 @@ nextGen(pop, pSelect = 0.2, pMutate = 0.01, fitfunc = "AIC",
 list, population
 }
 \description{
-Make next generation
+Make the next generation
 }

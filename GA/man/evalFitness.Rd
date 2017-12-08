@@ -16,5 +16,5 @@ evalFitness(fitfunc, chrom, dat, family)
 \item{family}{family,for linear regression model the family should be a continuous probability density function (default is gaussian family)}
 }
 \description{
-evaluates AIC of linear model corresponding to chromosome
+Evaluates AIC of linear model corresponding to chromosome
 }

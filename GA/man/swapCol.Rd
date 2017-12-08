@@ -15,7 +15,7 @@ swapCol(dat, y_name)
 dataframe
 }
 \description{
-swapCol
+Swap the dependent variable into first column
 }
 \details{
 swaps the columns of the data set so that the first column corresponding to the dependent variable

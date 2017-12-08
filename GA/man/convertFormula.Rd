@@ -12,11 +12,11 @@ convertFormula(dat, chrom)
 \item{chrom}{vector, a chromsome which composed of the binary dataset, 1 means to include in the model}
 }
 \value{
-strings of formula
+strings of the regression formula
 }
 \description{
 Creates formula for glm() function
 }
 \details{
-transfer the input chromesome into a model that composed of independent variable and selected dependent variables in the chromosome
+Transfer the input chromesome into a model that composed of independent variable and selected dependent variables in the chromosome
 }

@@ -2,34 +2,49 @@
 % Please edit documentation in R/select.R
 \name{select}
 \alias{select}
-\title{select}
+\title{Implementing Variable Selection in Regression Problems}
 \usage{
-select(dat, y_name, popSize = 30, pSelect = 0.2, pMutate = 0.01,
-  max_iter = 1000, fitfunc = "AIC", family = "gaussian",
-  end_iter_cond = F)
+select(dat, y_name, fitfunc="AIC", family="gaussian",
+       popSize=30, pSelect=0.2, pMutate=0.01,
+       max_iter=1000, end_iter_cond = F)
 }
 \arguments{
-\item{dat}{dataframe, data to operation(default sets dependent variable in first column and independent varialbes is other columns)}
+\item{dat}{dataframe, data to operation}
 
-\item{y_name}{string, column of dependent variable}
+\item{y_name}{character string, name of dependent variable}
 
-\item{popSize}{integer, population size(default=30)}
+\item{popSize}{integer, population size (different models) for one generation (default=30)}
 
-\item{pSelect}{float, the worse part to remove from the population(default=0.2)}
+\item{pSelect}{float, the worse part to remove from the population (default=0.2)}
 
-\item{pMutate}{float, the probability used to decide number of mutation(default=0.01)}
+\item{pMutate}{float, the probability used to decide number of mutation (default=0.01)}
 
-\item{max_iter}{integer, the maximum number of iteration}
+\item{max_iter}{integer, the maximum number of iterations (generations) that will be considered (default=1000)}
 
-\item{fitfunc}{method, model selection method(default is AIC)}
+\item{fitfunc}{character string, the fitness function that evaluate the regression models. (default="AIC")}
 
-\item{family}{family,for linear regression model the family should be a continuous probability density function (default is gaussian family)}
+\item{family}{character string, the distribution that will be used in glm function. (default="gaussian")}
 
-\item{end_iter_cond}{logical, the index to decide whether to stop iteration (default=F)}
+\item{end_iter_cond}{logical, the logical value that will end the iterations based on specific conditions. When it is true, the function will stop generate new generations when the next generation is exactly the same as the previous one. (default=FALSE)}
 }
 \value{
-list, return the best model that composed of chromsome and corresponding fitness
+select returns a nested list with three sublists:\cr\cr$model contains the formula expression for the best model selected by the function.\cr\cr$chrom contains the chrom object corresponding to this model.\cr\cr$fitness contains the fitness value corresponding to this model.\cr\cr This function will also print two plots corresponding to best fitness value per generation and average fitness value per generation
 }
 \description{
-Select the best model
+select is used to implement a genetic algorithm for variable selection in regression problems, including both linear regression and GLMs.
+}
+\details{
+This function first uses the swapCol function to create a new data set with the dependent variable as the first column from the original data set, and substitutes the original one with this new one.\cr\cr Then initPop function will be used to generate the first generation, and nexGen function will be used within the for-loop iterations to generate subsequent generations. if end_iter_cond is true, the iteration will be terminated when the next generation is exactly the same as the previous one. Meanwhile, the function will keep track of the model with the least fitness value during each iteration.\cr\cr This function will give a notifiction every 100 iterations, and the iterations will be terminated after reaching the moximum number of iterations.
+}
+\examples{
+require(GA)
+select_var <- select(dat = mtcars, y_name = "mpg", fitfunc = "AIC",
+                     pMutate = 0.0001, max_iter = 100, end_iter_cond = T)
+select_var
+}
+\references{
+Givens, G. H. and Hoeting J. A. (2012) \emph{Combinatorial Optimization}. Chapter 3 of \emph{Computational Statistics} in G. H. Givens and J. A. Hoeting, Wiley.
+}
+\author{
+Dongyu Lang, Amanda Mok, Kehsin Su, and Junyi Tang
 }
